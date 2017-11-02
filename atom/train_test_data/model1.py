@@ -53,9 +53,9 @@ for name in sorted(os.listdir(TEXT_DATA_DIR)):
 #------------------------------------------------------------
 
 print(sys.argv)
-model_name = sys.argv[1]
-b_size = int(sys.argv[2])
-num_epochs = int(sys.argv[3])
+model_name = "1"#sys.argv[1]
+b_size = 128#int(sys.argv[2])
+num_epochs = 1#int(sys.argv[3])
 
 print("model_name: ", model_name)
 print("b_size: ", b_size)
@@ -157,17 +157,21 @@ for i in xrange(3):
     print('Predicting')
     predicted = model.predict(x_val, batch_size=b_size)
     res=np.argmax(predicted, axis=1) 
-    
-    a = np.zeros(8)
+    ll = []
+
     for i in xrange(len(res)):
-    if predicted[i,res[i]]>0.85:
-        b = np.array(a)
-        x_train = np.vstack([x_train, x_val[i]]) 
-        x_val = np.delete(x_val, (i), axis=0)
-        b[res[i]] = 1
-        y_train = np.vstack([y_train, b])
-        y_val = np.delete(y_val, (i), axis=0)
-    
+        if predicted[i,res[i]]>0.8:
+            ll.append(i)
+    if len(ll)>0:
+        b = np.zeros((len(ll),8))
+        b[np.arange(len(ll)), res[ll]]=1
+        x_train = np.vstack([x_train, x_val[ll]])
+        y_train = np.vstack([y_train, b])    
+        x_val = np.delete(x_val, (ll), axis=0)
+        y_val = np.delete(y_val, (ll), axis=0)
+    else:
+        print("iter: ",i)
+        print("no predictions with confidence more than thresold")
     model.save_weights('models/'+model_name+'_'+str(b_size)+'_'+str(num_epochs)+'_'+'iter_'+str(i)+'_weights.h5')
     del model
 
