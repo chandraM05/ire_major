@@ -137,15 +137,15 @@ preds = Dense(len(labels_index), activation='softmax')(x)
 
 learnrate = 0.1
 decay = 1e-6
-for i in xrange(3):
+for j in xrange(3):
     model = Model(sequence_input, preds)
     learnrate = learnrate*0.1
-    if i==0:
+    if j==0:
         model.compile(loss='categorical_crossentropy',
                   optimizer='rmsprop',
                   metrics=['acc'])
     else:
-        model.load_weights('models/'+model_name+'_'+str(b_size)+'_'+str(num_epochs)+'_'+'iter_'+str(i-1)+'_weights.h5')
+        model.load_weights('models/'+model_name+'_'+str(b_size)+'_'+str(num_epochs)+'_'+'iter_'+str(j-1)+'_weights.h5')
         sgd = SGD(lr=learnrate, decay=1e-6, momentum=0.9, nesterov=True)
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['acc'])
 
@@ -170,9 +170,10 @@ for i in xrange(3):
         x_val = np.delete(x_val, (ll), axis=0)
         y_val = np.delete(y_val, (ll), axis=0)
     else:
-        print("iter: ",i)
+        print("iter: ",j)
         print("no predictions with confidence more than thresold")
-    model.save_weights('models/'+model_name+'_'+str(b_size)+'_'+str(num_epochs)+'_'+'iter_'+str(i)+'_weights.h5')
+
+    model.save_weights('models/'+model_name+'_'+str(b_size)+'_'+str(num_epochs)+'_'+'iter_'+str(j)+'_weights.h5')
     del model
 
 
