@@ -53,9 +53,9 @@ for name in sorted(os.listdir(TEXT_DATA_DIR)):
 #------------------------------------------------------------
 
 print(sys.argv)
-model_name = "1"#sys.argv[1]
-b_size = 128#int(sys.argv[2])
-num_epochs = 1#int(sys.argv[3])
+model_name = sys.argv[1]
+b_size = int(sys.argv[2])
+num_epochs = int(sys.argv[3])
 
 print("model_name: ", model_name)
 print("b_size: ", b_size)
