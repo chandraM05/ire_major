@@ -18,7 +18,7 @@ from keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional
 
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NB_WORDS = 50000
-EMBEDDING_DIM = 128
+EMBEDDING_DIM = 100
 VALIDATION_SPLIT = 0.2
 batch_size = 32
 
@@ -55,14 +55,7 @@ for name in sorted(os.listdir(TEXT_DATA_DIR)):
                     labels.append(labels_index[linebreakup[0]])
         f.close()
 #----------------------------------------------
-print(sys.argv)
-model_name = sys.argv[1]
-b_size = int(sys.argv[2])
-num_epochs = int(sys.argv[3])
 
-print("model_name: ", model_name)
-print("b_size: ", b_size)
-print("num_epochs: ", num_epochs)
 # Training steps
 
 tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
@@ -89,18 +82,16 @@ x_train = data[:-nb_validation_samples]
 y_train = labels[:-nb_validation_samples]
 x_val = data[-nb_validation_samples:]
 y_val = labels[-nb_validation_samples:]
-x_test = np.array(x_val)
-y_test = np.array(y_val)
 
 kernel_size = 5
 filters = 64
 pool_size = 4
+
 # LSTM
-lstm_output_size = 64
-'''
+lstm_output_size = 70
+
 model = Sequential()
-# embedding layer can be made trainable. Look into it
-model.add(Embedding(MAX_NB_WORDS, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH))
+model.add(Embedding(MAX_NB_WORDS, 128, input_length=MAX_SEQUENCE_LENGTH))
 #model.add(Dropout(0.25))
 model.add(Conv1D(filters,
                  kernel_size,
@@ -110,73 +101,21 @@ model.add(Conv1D(filters,
 model.add(MaxPooling1D(pool_size=pool_size))
 model.add(LSTM(lstm_output_size))
 model.add(Dense(len(labels_index), activation='softmax'))
-
+'''
 model = Sequential()
-model.add(Embedding(MAX_NB_WORDS, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH))
-model.add(Conv1D(filters,
-                 kernel_size,
-                 padding='valid',
-                 activation='relu',
-                 strides=1))
-model.add(MaxPooling1D(pool_size=pool_size))
-model.add(Bidirectional(LSTM(lstm_output_size)))
+model.add(Embedding(MAX_NB_WORDS, 128, input_length=MAX_SEQUENCE_LENGTH))
+model.add(Bidirectional(LSTM(64)))
 model.add(Dropout(0.5))
 model.add(Dense(len(labels_index), activation='softmax'))
 '''
-embedding_layer = Embedding(MAX_NB_WORDS + 1, EMBEDDING_DIM, input_length=MAX_SEQUENCE_LENGTH)
-sequence_input = Input(shape=(MAX_SEQUENCE_LENGTH,), dtype='int32')
-embedded_sequences = embedding_layer(sequence_input)
-x = Conv1D(filters,
-                 kernel_size,
-                 padding='valid',
-                 activation='relu',
-                 strides=1)(embedded_sequences)
-x = MaxPooling1D(pool_size=pool_size)(x)
-x = Bidirectional(LSTM(lstm_output_size))(x)
-x = Dropout(0.5)(x)
-preds = Dense(len(labels_index), activation='softmax')(x)
-
 # try using different optimizers and different optimizer configs
-# model.compile('adam', 'categorical_crossentropy', metrics=['accuracy'])
+model.compile('adam', 'categorical_crossentropy', metrics=['accuracy'])
 
-learnrate = 0.1
-decay = 1e-6
-for j in xrange(3):
-    model = Model(sequence_input, preds)
-    learnrate = learnrate*0.1
-    if j==0:
-        model.compile(loss='categorical_crossentropy',
-                  optimizer='rmsprop',
-                  metrics=['acc'])
-    else:
-        model.load_weights('models/'+model_name+'_'+str(b_size)+'_'+str(num_epochs)+'_'+'iter_'+str(j-1)+'_weights.h5')
-        sgd = SGD(lr=learnrate, decay=1e-6, momentum=0.9, nesterov=True)
-        model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['acc'])
-
-    model.fit(x_train, y_train, validation_data=(x_test, y_test),
-              epochs=num_epochs, batch_size=b_size)
-    
-    score = model.evaluate(x_test, y_test, batch_size=b_size)
-    print("score: ", score)
-    # semisupervised
-    print('Predicting')
-    predicted = model.predict(x_val, batch_size=b_size)
-    res=np.argmax(predicted, axis=1) 
-    ll = []
-
-    for i in xrange(len(res)):
-        if predicted[i,res[i]]>0.8:
-            ll.append(i)
-    if len(ll)>0:
-        b = np.zeros((len(ll),8))
-        b[np.arange(len(ll)), res[ll]]=1
-        x_train = np.vstack([x_train, x_val[ll]])
-        y_train = np.vstack([y_train, b])    
-        x_val = np.delete(x_val, (ll), axis=0)
-        y_val = np.delete(y_val, (ll), axis=0)
-    else:
-        print("iter: ",j)
-        print("no predictions with confidence more than thresold")
-
-    model.save_weights('models/'+model_name+'_'+str(b_size)+'_'+str(num_epochs)+'_'+'iter_'+str(j)+'_weights.h5')
-    del model
+print('Train...')
+t1 = time.time()
+model.fit(x_train, y_train,
+          batch_size=batch_size,
+          epochs=8,
+          validation_data=[x_val, y_val])
+t2 = time.time()
+print(t2-t1)
