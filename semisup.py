@@ -12,7 +12,7 @@ VALIDATION_SPLIT = 0
 val_text = []    
 val_labels = []  
 
-TEXT_DATA_DIR = "./contains_all"
+TEXT_DATA_DIR = "./../contains_all"
 
 for name in sorted(os.listdir(TEXT_DATA_DIR)):
     fpath = os.path.join(TEXT_DATA_DIR, name)
@@ -35,8 +35,10 @@ for name in sorted(os.listdir(TEXT_DATA_DIR)):
 
 val_text = np.array(val_text)
 val_labels = np.array(val_labels)
+np.save('val_text.npy', val_text)
+np.save('val_labels.npy', val_labels)
+print("saved")
 
-'''
 tokenizer = Tokenizer(nb_words=MAX_NB_WORDS)
 tokenizer.fit_on_texts(val_text)
 sequences = tokenizer.texts_to_sequences(val_text)
@@ -46,7 +48,7 @@ print('Found %s unique tokens.' % len(word_index))
 
 data = pad_sequences(sequences, maxlen=MAX_SEQUENCE_LENGTH)
 
-val_labels = to_categorical(np.asarray(val_labels))
+labels = to_categorical(np.asarray(val_labels))
 print('Shape of data tensor:', data.shape)
 print('Shape of label tensor:', labels.shape)
 
@@ -55,8 +57,8 @@ indices = np.arange(data.shape[0])
 np.random.shuffle(indices)
 data = data[indices]
 labels = labels[indices]
-nb_validation_samples = int(VALIDATION_SPLIT * data.shape[0])
 
 ssx_val = data[:]
 ssy_val = labels[:]
-'''
+np.save('ssx_val.npy', ssx_val)
+np.save('ssy_val.npy', ssy_val)

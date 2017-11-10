@@ -20,7 +20,6 @@ MAX_SEQUENCE_LENGTH = 1000
 MAX_NB_WORDS = 50000
 EMBEDDING_DIM = 128
 VALIDATION_SPLIT = 0.2
-batch_size = 32
 
 ## reading the train and test files
 texts_title = []
@@ -140,17 +139,17 @@ preds = Dense(len(labels_index), activation='softmax')(x)
 # model.compile('adam', 'categorical_crossentropy', metrics=['accuracy'])
 
 learnrate = 0.1
-decay = 1e-6
-for j in xrange(3):
+decay = 1e-3
+for j in xrange(6):
     model = Model(sequence_input, preds)
-    learnrate = learnrate*0.1
+    learnrate = learnrate*0.5
     if j==0:
         model.compile(loss='categorical_crossentropy',
                   optimizer='rmsprop',
                   metrics=['acc'])
     else:
         model.load_weights('models/'+model_name+'_'+str(b_size)+'_'+str(num_epochs)+'_'+'iter_'+str(j-1)+'_weights.h5')
-        sgd = SGD(lr=learnrate, decay=1e-6, momentum=0.9, nesterov=True)
+        sgd = SGD(lr=learnrate, decay=decay, momentum=0.9, nesterov=True)
         model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['acc'])
 
     model.fit(x_train, y_train, validation_data=(x_test, y_test),
@@ -165,7 +164,7 @@ for j in xrange(3):
     ll = []
 
     for i in xrange(len(res)):
-        if predicted[i,res[i]]>0.8:
+        if predicted[i,res[i]]>0.9:
             ll.append(i)
     if len(ll)>0:
         b = np.zeros((len(ll),8))
