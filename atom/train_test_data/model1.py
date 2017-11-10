@@ -13,8 +13,8 @@ from keras.layers import Embedding
 from keras.optimizers import SGD
 
 MAX_SEQUENCE_LENGTH = 1000
-MAX_NB_WORDS = 20000
-EMBEDDING_DIM = 100
+MAX_NB_WORDS = 50000
+EMBEDDING_DIM = 128
 VALIDATION_SPLIT = 0.2
 
 ## reading the train and test files
